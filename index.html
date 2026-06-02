@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenKeeper — 自動除草機模擬器</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>🌱 GreenKeeper</h1>
+    <p class="subtitle">自動除草機模擬器 — 模擬一台除草機如何走遍整座院子</p>
+  </header>
+
+  <main>
+    <div class="stage">
+      <canvas id="yard" width="600" height="600"></canvas>
+    </div>
+
+    <aside class="panel">
+      <section class="card">
+        <h2>控制</h2>
+        <div class="buttons">
+          <button id="startBtn" class="primary">▶ 開始</button>
+          <button id="resetBtn">↺ 重置</button>
+        </div>
+
+        <label class="field">
+          <span>速度</span>
+          <input type="range" id="speed" min="1" max="8" value="3">
+        </label>
+
+        <label class="field">
+          <span>除草機大小</span>
+          <input type="range" id="mowerSize" min="10" max="40" value="20">
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>狀態</h2>
+        <div class="stat">
+          <span class="stat-label">覆蓋率</span>
+          <span class="stat-value" id="coverage">0%</span>
+        </div>
+        <div class="bar"><div class="bar-fill" id="coverageBar"></div></div>
+
+        <div class="stat">
+          <span class="stat-label">經過時間</span>
+          <span class="stat-value" id="elapsed">0.0 s</span>
+        </div>
+      </section>
+
+      <section class="card hint">
+        <h2>目前演算法</h2>
+        <p><strong>隨機碰撞反彈</strong></p>
+        <p class="muted">除草機直線前進，撞到牆就隨機轉向，跟早期掃地機器人一樣。簡單但效率不高 — 之後我們可以加入更聰明的走法來比較。</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="sim.js"></script>
+</body>
+</html>
