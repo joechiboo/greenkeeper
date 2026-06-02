@@ -4,59 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GreenKeeper — 自動除草機模擬器</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <h1>🌱 GreenKeeper</h1>
-    <p class="subtitle">自動除草機模擬器 — 模擬一台除草機如何走遍整座院子</p>
+    <p class="subtitle">自動除草機模擬器 — 並排比較不同走法走遍院子的效率</p>
   </header>
 
-  <main>
-    <div class="stage">
-      <canvas id="yard" width="600" height="600"></canvas>
+  <div class="controls">
+    <div class="control-group buttons">
+      <button id="startBtn" class="primary">▶ 開始</button>
+      <button id="resetBtn">↺ 重置</button>
     </div>
 
-    <aside class="panel">
-      <section class="card">
-        <h2>控制</h2>
-        <div class="buttons">
-          <button id="startBtn" class="primary">▶ 開始</button>
-          <button id="resetBtn">↺ 重置</button>
-        </div>
+    <div class="control-group toggles" id="toggles">
+      <label><input type="checkbox" data-algo="boundary" checked> 邊界偵測掃描</label>
+      <label><input type="checkbox" data-algo="systematic"> 規律掃描（已知地圖）</label>
+      <label><input type="checkbox" data-algo="crosscut" checked> 交叉雙向（橫向＋縱向）</label>
+      <label><input type="checkbox" data-algo="crossfill" checked> 交叉雙向＋補洞 <span class="rank-tag rank-tag-2">🥈 推薦</span></label>
+      <label><input type="checkbox" data-algo="bcd" checked> 梯形分解（遇障礙分區） <span class="rank-tag rank-tag-1">🥇 最專業</span></label>
+      <label><input type="checkbox" data-algo="cellular" checked> 分區掃描（拆欄）</label>
+      <label><input type="checkbox" data-algo="spiral" checked> 螺旋掃描</label>
+      <label><input type="checkbox" data-algo="wall" checked> 沿牆走（先繞邊）</label>
+      <label><input type="checkbox" data-algo="nearest" checked> 最近未掃點導航</label>
+      <label><input type="checkbox" data-algo="slam" checked> 建圖式掃描（SLAM）</label>
+      <label><input type="checkbox" data-algo="random" checked> 隨機碰撞反彈</label>
+    </div>
 
-        <label class="field">
-          <span>速度</span>
-          <input type="range" id="speed" min="1" max="8" value="3">
-        </label>
+    <div class="control-group sliders">
+      <label class="field"><span>除草機類型</span>
+        <select id="speed">
+          <option value="1.4" selected>機器人割草機（~1.4 km/h）</option>
+          <option value="3.6">手推式割草機（~3.6 km/h）</option>
+          <option value="5">自走式割草機（~5 km/h）</option>
+          <option value="8">乘坐式割草機（~8 km/h）</option>
+        </select></label>
+      <label class="field"><span>割幅</span>
+        <input type="range" id="mowerSize" min="6" max="24" value="12"></label>
+      <label class="field"><span>檢視</span>
+        <select id="viewMode">
+          <option value="grass" selected>草皮</option>
+          <option value="heat">重複次數熱力圖</option>
+        </select></label>
+    </div>
 
-        <label class="field">
-          <span>除草機大小</span>
-          <input type="range" id="mowerSize" min="10" max="40" value="20">
-        </label>
-      </section>
+    <div class="control-group">
+      <label><input type="checkbox" id="obstacles" checked> 🌳 障礙物（樹＋坑洞）</label>
+    </div>
+  </div>
 
-      <section class="card">
-        <h2>狀態</h2>
-        <div class="stat">
-          <span class="stat-label">覆蓋率</span>
-          <span class="stat-value" id="coverage">0%</span>
-        </div>
-        <div class="bar"><div class="bar-fill" id="coverageBar"></div></div>
+  <p class="accel-note muted" id="accelNote"></p>
 
-        <div class="stat">
-          <span class="stat-label">經過時間</span>
-          <span class="stat-value" id="elapsed">0.0 s</span>
-        </div>
-      </section>
-
-      <section class="card hint">
-        <h2>目前演算法</h2>
-        <p><strong>隨機碰撞反彈</strong></p>
-        <p class="muted">除草機直線前進，撞到牆就隨機轉向，跟早期掃地機器人一樣。簡單但效率不高 — 之後我們可以加入更聰明的走法來比較。</p>
-      </section>
-    </aside>
-  </main>
+  <main id="grid" class="grid"></main>
 
   <script src="sim.js"></script>
 </body>
