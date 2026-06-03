@@ -4,6 +4,9 @@
 
 靈感來自掃地機器人：核心問題都是「**如何有效率地覆蓋整個區域**」。
 
+更遠的目標：把模擬器當「大腦練習場」，**做出一台真的會自己走的機器**。
+計劃見 [計劃頁](https://joechiboo.github.io/greenkeeper/plan.html) ／ [實體機器路線圖](docs/hardware-roadmap.md)。這是好玩、自學的專案，沒有時程壓力。
+
 🔗 線上版：<https://joechiboo.github.io/greenkeeper/>
 
 ## 怎麼跑
@@ -28,6 +31,8 @@
 
 ## 檔案
 
-- `index.html` — 頁面結構
+- `index.html` — 模擬器頁面結構
+- `plan.html` — 專案計劃頁（邁向真實機器的階梯與盤點）
 - `style.css` — 樣式
 - `sim.js` — 模擬邏輯（院子、除草機、演算法）
+- `docs/` — 規劃文檔（YOLO 構想、實體機器路線圖、硬體盤點）
