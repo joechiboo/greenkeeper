@@ -69,6 +69,89 @@ GreenKeeper 不只停在模擬器，目標是做出**一台真實、會自己走
 3. **接大腦** — 把模擬器調好的決策演算法，改成吃「YOLO 看到的東西」，自動開車。
 4. **（很久以後）** 裝刀片、防水、電量 / 回充座。
 
+## 階段 2 的效能現實：Pi 4 純 CPU 跑得動 YOLO 嗎？
+
+> 來源：視覺辨識可行性技術備忘（2026-06-04）。結論：**fps 不是問題，安全架構才是重點。**
+
+除草機移動很慢（約 0.3 m/s），對 fps 的需求遠低於一般即時影像應用：
+
+| 推論 fps | 每次偵測間機器前進距離 |
+|----------|------------------------|
+| 5 fps    | 約 6 公分 |
+| 3 fps    | 約 10 公分 |
+
+**Pi 4 純 CPU（YOLOv8n + NCNN + `imgsz=320`）可達約 5~8 fps，足以支援慢速除草機的避障反應。** 不需要先衝去買加速器。
+
+### 效能優化重點（純 CPU 即可達標）
+
+1. 只用 **YOLOv8n**（nano，唯一適合 Pi 4 的尺寸），匯出 **NCNN** 格式（`model.export(format="ncnn")`）。
+2. 降低輸入解析度 `imgsz=320`。
+3. **多執行緒分離「影像擷取」與「推論」**，只處理最新影格、丟棄舊影格，避免延遲累積。
+4. 視需要加入跳幀（每 2~3 幀偵測一次）。
+
+### 若需更高效能 / 更省心
+
+- 加裝 **Coral USB Accelerator（Edge TPU）** 可達 30+ fps。
+- 或升級 **Pi 5**（CPU 約快 2~3 倍）。
+- 兩者都是「之後嫌慢再考慮」的選項，階段 2/3 先用手上的 Pi 4 即可。
+
+### 即時偵測腳本（Pi 4 純 CPU，多執行緒）
+
+> 使用前先 `model.export(format="ncnn")` 產生 NCNN 模型。階段 2 可直接拿來跑。
+
+```python
+import cv2, threading, time
+from ultralytics import YOLO
+
+model = YOLO("yolov8n_ncnn_model")
+
+class Camera:
+    """背景執行緒持續抓最新影格，只保留最新一張"""
+    def __init__(self, src=0):
+        self.cap = cv2.VideoCapture(src)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        self.frame = None
+        self.running = True
+        threading.Thread(target=self.update, daemon=True).start()
+    def update(self):
+        while self.running:
+            ok, f = self.cap.read()
+            if ok:
+                self.frame = f          # 舊影格直接覆蓋
+    def read(self):
+        return self.frame
+    def stop(self):
+        self.running = False
+        self.cap.release()
+
+cam = Camera(0)
+time.sleep(1)                            # 相機暖機
+prev = time.time()
+while True:
+    frame = cam.read()
+    if frame is None:
+        continue
+    results = model(frame, imgsz=320, verbose=False)   # 320px 加速
+    annotated = results[0].plot()
+    now = time.time()
+    fps = 1 / (now - prev)
+    prev = now
+    cv2.putText(annotated, f"FPS: {fps:.1f}", (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    cv2.imshow("YOLOv8n - Pi4", annotated)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+cam.stop()
+cv2.destroyAllWindows()
+```
+
+### YOLO 在本專案的角色（補充）
+
+- COCO 預訓練的 YOLOv8n 已可偵測 `person` / `dog` / `cat` → 直接用於避開人與寵物。
+- 「草地 vs 花圃 vs 步道」「邊界」COCO 不涵蓋 → 需自行拍攝資料集**微調（fine-tune）**（呼應 vision-yolo.md 路線 A）。
+- 進階：寵物便便偵測繞開（現行商用割草機已有此功能）。
+
 ## Pi ↔ Uno 怎麼合體（階段 3）
 
 三層各就各位，這台車（Uno 套件）= 手腳，Pi + webcam = 眼睛 + 大腦：
@@ -91,6 +174,31 @@ GreenKeeper 不只停在模擬器，目標是做出**一台真實、會自己走
 
 ⚠️ **供電分開**：USB 線只走資料。**電池盒推 Uno + 馬達；Pi 用自己的行動電源。** 否則馬達一啟動電壓掉，Pi 會當機重開。
 
+## 階段 4 的安全架構（裝刀片前必讀）
+
+> 來源：視覺辨識可行性技術備忘（2026-06-04）。前期不裝刀片，但**裝之前一定要先把這層想清楚**。
+
+除草機有**旋轉刀片**，偵測人/寵物/手是攸關安全的事。
+3~5 fps 的視覺加上推論延遲與煞停時間，反應太慢——**視覺絕不能當刀片安全的最後防線。**
+
+正規做法是「**冗餘感測 + 硬體即時切斷**」，視覺僅為輔助層：
+
+| 層級 | 採用方案 | 角色 |
+|------|----------|------|
+| 邊界界定 | 周界埋線 或 RTK-GPS | 決定可割範圍，**不使用視覺** |
+| **硬體安全（最高優先）** | 抬起感測 + 傾斜感測 + 碰撞感測 | 觸發時**直接硬體切斷刀片電源**，不經過 Pi 運算 |
+| 近距離避障 | 超音波 / ToF 測距（如 VL53L0X） | 便宜、可靠、不受光線影響 |
+| 智慧視覺 | Pi 4 + webcam + YOLOv8n | 辨識並繞開人、寵物、玩具、花圃 |
+
+**核心原則：刀片安全交由硬體感測器即時切斷；視覺只負責更聰明的導航與繞障。**
+
+### 待確認（階段 4 之前）
+
+- [ ] 邊界方案決定：周界埋線 vs RTK-GPS
+- [ ] 硬體安全感測器選型與切斷電路設計（抬起／傾斜／碰撞）
+- [ ] 近距離避障感測器選型（超音波 / ToF，如 VL53L0X）
+- [ ] 電源預算評估（Pi 4 / Pi 5 / +Coral 的耗電與電池續航）
+
 ## 心理準備
 - 時間：好幾個月。
 - 花費：約台幣 3,000～10,000。
@@ -105,5 +213,5 @@ GreenKeeper 不只停在模擬器，目標是做出**一台真實、會自己走
 - [x] 決定手腳 → **傑森創工 Uno 2WD 套件**（這台用 Uno，Mega 備用）
 - [ ] 確認電池（18650/AA）→ 下單套件
 - [ ] **階段 1**：組裝 → Blink → 傑森 L298N 範例（轉馬達）→ 避障 → 藍牙遙控
-- [ ] **階段 2**：筆電 + webcam 跑 YOLO（`pip install ultralytics`，用 `yolov8n`），框出物體
+- [ ] **階段 2**：筆電 + webcam 跑 YOLO（`pip install ultralytics`，用 `yolov8n`），框出物體 → 上 Pi 4 用 NCNN + `imgsz=320` 跑多執行緒腳本（見「階段 2 的效能現實」，純 CPU 約 5~8 fps）
 - [ ] **階段 3**：Pi 裝 webcam 上車，USB 序列埠接 Uno，把決策接上（見上方「Pi ↔ Uno 怎麼合體」）
