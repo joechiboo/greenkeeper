@@ -41,6 +41,8 @@
 ### 階段 3（樹莓派上車跑 YOLO）
 
 - [x] 💾 **microSD 記憶卡** — 已插在 Pi 上、**裡面有可開機上網的系統** ✅（IP `192.168.169.91` 連得通＝系統已就緒，省下灌系統這步）
+  - **SSH 連法**：電腦 PowerShell 下 `ssh pi@192.168.169.91`，帳號 `pi`（系統 Debian 11 / Pi 4，aarch64）。連不上先 `ping 192.168.169.91`，IP 被 DHCP 換掉時改用 `ssh pi@raspberrypi.local`。
+  - ⚠️ 登入後若出現 `Wi-Fi is currently blocked by rfkill`：先設國碼才能開 Wi-Fi → `sudo raspi-config` → Localisation → WLAN Country 選 `TW`（或 `sudo raspi-config nonint do_wifi_country TW`），再 `rfkill unblock wifi`。
 - [ ] 🔋 **行動電源**（給樹莓派）— 車在跑時獨立供電；**馬達和樹莓派要分開供電**，否則馬達啟動時電壓掉、樹莓派會當機重開
 - [ ] 🔌 樹莓派桌上測試電源 — 5V 電源供應器（手機充電頭多半可用）
 
