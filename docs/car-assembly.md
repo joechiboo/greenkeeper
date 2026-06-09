@@ -8,9 +8,9 @@
 - **組裝手冊 PDF（13 頁，20 步）**：<https://jmaker.banner.tw/doc/car_info.pdf>
 - **商品頁**：<https://www.jmaker.com.tw/products/arduino-car>
 - **L298N 入門（接線，從這開始！）**：<https://blog.jmaker.com.tw/arduino-car-l298n/>
-- **避障車範例（超音波）**：<https://blog.jmaker.com.tw/arduino-car-sr04/>
-- **循線車範例（紅外）**：<https://blog.jmaker.com.tw/arduino-car-bt/>（循線）/ <https://blog.jmaker.com.tw/arduino-car-ir/>
-- **藍牙遙控範例**：<https://blog.jmaker.com.tw/arduino-car-bt/>
+- **避障車範例（超音波 SR04）**：<https://blog.jmaker.com.tw/arduino-car-sr04/>
+- **循跡車範例（紅外線）**：<https://blog.jmaker.com.tw/arduino-car-ir/>
+- **藍牙遙控範例（HC-05）**：<https://blog.jmaker.com.tw/arduino-car-bt/>
 
 > 注意：手冊裡的組裝短網址 `goo.gl/mPjfz1` 已失效（Google 關閉 goo.gl）。直接用上面的 PDF 與 blog 連結。
 
@@ -55,6 +55,27 @@
 | 兩顆馬達 | L298N 馬達接線柱 |
 
 > 馬達銅片很脆：線是焊好再用熱熔膠固定的（應力釋放），接線時別拉扯馬達線。
+
+## 模組要全裝嗎？裝到什麼程度（以割草機目標）
+
+| 模組 | 教學 | 專案需要? | 說明 |
+|---|---|---|---|
+| 底盤+馬達+輪+L298N+電池 | arduino-car-l298n | ✅ 必裝（核心） | 會動的車，一切基礎 |
+| 超音波 SR04 | arduino-car-sr04 | ✅ 要裝（有用） | 近距離避障，計劃裡 Arduino 的工作 |
+| 藍牙 HC-05 | arduino-car-bt | 🟡 建議裝（測試） | 手機遙控；其程式是之後 Pi USB 序列控制的範本 |
+| 紅外循跡 | arduino-car-ir | ⛔ 可跳過 | 「沿黑線走」；本車靠視覺自由覆蓋整片，用不到 |
+
+- **專案主線**：馬達 → 超音波 → 藍牙(測試)，即達成階段 1「會走+避障+遙控」。之後控制交給 Pi+YOLO。
+- **循跡為何用不到**：循跡＝跟著地上黑線跑（像軌道）；割草＝自己決定走遍整片（覆蓋演算法 + 視覺），不同思路。
+
+## Pi 與 Arduino 怎麼溝通（重點）
+
+兩者**都裝在同一台車上（相距約 10cm）**，所以：
+
+- ✅ **Pi ↔ Arduino → 用 USB 線（序列埠）**：簡單、最穩、插上就通。無線是「遠距離」才有價值，疊在一起拉藍牙沒意義還要忍配對麻煩。
+- ✅ **藍牙 HC-05 的角色 → 人用手機/筆電「隔空遙控」車**（階段 1 測試 / 手動接管），不是 Pi↔Arduino。
+- 程式幾乎一樣：藍牙 `BT.read()`、USB `Serial.read()`，馬達邏輯不變。
+- 詳見 [hardware-roadmap.md](hardware-roadmap.md) 的「Pi ↔ Uno 怎麼合體」。
 
 ## 開工順序（對應路線圖階段 1）
 
