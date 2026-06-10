@@ -24,7 +24,10 @@
 #define RIGHT2 6
 #define RIGHT_PWM 5   // ENB
 
-int SPEED = 150;       // 速度 0~255，先用中速
+// 左右輪速度 0~255。便宜 TT 馬達兩側轉速常有差，
+// 若車偏一邊：把「比較快」那側的數字調小一點，直到走直。
+int LEFT_SPEED = 150;
+int RIGHT_SPEED = 150;
 
 void setup() {
   int pins[] = {LEFT1, LEFT2, LEFT_PWM, RIGHT1, RIGHT2, RIGHT_PWM};
@@ -34,23 +37,23 @@ void setup() {
 void forward() {
   digitalWrite(LEFT1, HIGH);  digitalWrite(LEFT2, LOW);
   digitalWrite(RIGHT1, HIGH); digitalWrite(RIGHT2, LOW);
-  analogWrite(LEFT_PWM, SPEED); analogWrite(RIGHT_PWM, SPEED);
+  analogWrite(LEFT_PWM, LEFT_SPEED); analogWrite(RIGHT_PWM, RIGHT_SPEED);
 }
 
 void backward() {
   digitalWrite(LEFT1, LOW);  digitalWrite(LEFT2, HIGH);
   digitalWrite(RIGHT1, LOW); digitalWrite(RIGHT2, HIGH);
-  analogWrite(LEFT_PWM, SPEED); analogWrite(RIGHT_PWM, SPEED);
+  analogWrite(LEFT_PWM, LEFT_SPEED); analogWrite(RIGHT_PWM, RIGHT_SPEED);
 }
 
 void turnLeft() {   // 左輪停、右輪轉
   digitalWrite(RIGHT1, HIGH); digitalWrite(RIGHT2, LOW);
-  analogWrite(LEFT_PWM, 0); analogWrite(RIGHT_PWM, SPEED);
+  analogWrite(LEFT_PWM, 0); analogWrite(RIGHT_PWM, RIGHT_SPEED);
 }
 
 void turnRight() {  // 右輪停、左輪轉
   digitalWrite(LEFT1, HIGH); digitalWrite(LEFT2, LOW);
-  analogWrite(LEFT_PWM, SPEED); analogWrite(RIGHT_PWM, 0);
+  analogWrite(LEFT_PWM, LEFT_SPEED); analogWrite(RIGHT_PWM, 0);
 }
 
 void stopMotor() {

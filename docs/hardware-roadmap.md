@@ -212,6 +212,6 @@ cv2.destroyAllWindows()
 - [x] 決定大腦 → **樹莓派 Pi 4**
 - [x] 決定手腳 → **傑森創工 Uno 2WD 套件**（這台用 Uno，Mega 備用）
 - [ ] 確認電池（18650/AA）→ 下單套件
-- [ ] **階段 1**：組裝 → Blink → 傑森 L298N 範例（轉馬達）→ 避障 → 藍牙遙控
+- [ ] **階段 1**：組裝 ✅ / Blink ✅ / L298N 馬達會動 ✅（**車會走了！** 2026-06-10）→ 剩：左右輪速微調（TT 馬達兩側有差，用 `LEFT_SPEED`/`RIGHT_SPEED` 修）、避障（超音波）、藍牙遙控
 - [ ] **階段 2**：筆電 + webcam 跑 YOLO（`pip install ultralytics`，用 `yolov8n`），框出物體 → 上 Pi 4 用 NCNN + `imgsz=320` 跑多執行緒腳本（見「階段 2 的效能現實」，純 CPU 約 5~8 fps）
 - [ ] **階段 3**：Pi 裝 webcam 上車，USB 序列埠接 Uno，把決策接上（見上方「Pi ↔ Uno 怎麼合體」）
