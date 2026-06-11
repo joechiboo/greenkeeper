@@ -218,8 +218,11 @@ cv2.destroyAllWindows()
      Pi → USB 序列埠 → Uno（`firmware/serial_control`）→ 馬達。
      Uno 端 1 秒無指令自動停車；Pi 端 scp 部署（Pi 的 git clone 卡 SSL，
      修法：`sudo apt-get install --reinstall ca-certificates`，待驗證）
-   - **視覺**：Pi + webcam 跑 YOLOv8n（YOLO 就是 CNN），框出草/障礙/人 ← **下一步**
-   - **接合**：YOLO 偵測 → 規則決定方向 → 送指令給車
+   - **視覺** ✅（**2026-06-11 同日打通！`robot/vision_test.py` 框出 tv/keyboard**）：
+     ultralytics 裝在 Pi（piwheels 快）；公司網路 FortiGate 攔 github SSL，
+     權重/程式一律 **scp 部署**（PC 下載 `yolov8n.pt` → scp 到 Pi 家目錄）。
+     有看到誤判（電話認成 keyboard 35%）＝ vision-yolo.md 說的偵測雜訊，真實上演
+   - **接合**：YOLO 偵測 → 規則決定方向 → 送指令給車 ← **下一步（最後一塊）**
    - 觀念：CNN/YOLO 負責「看」，方向由**自己的規則邏輯**決定（非端到端讓 CNN 直接控向）
 2. **超音波測距（保留，可延後）**：避障安全層（便宜可靠，自動駕駛時當防撞底線）。跟視覺不重複——它是毫秒級、不受光線影響的即時反射；可等 Pi 跑通後再補裝。
 3. ~~**藍牙模組**~~ **→ 已決定跳過**（2026-06-10）：原為手機遙控/測試，但 USB 序列埠能測一樣的馬達協定，藍牙等於多繞一圈。詳見 [car-assembly.md](car-assembly.md) 決策紀錄。

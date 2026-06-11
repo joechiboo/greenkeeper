@@ -144,25 +144,25 @@
     <section>
       <h2>四階段階梯</h2>
       <div class="ladder">
-        <div class="step">
-          <div class="light">⬜</div>
+        <div class="step done">
+          <div class="light">✅</div>
           <div class="body">
-            <div class="title">1. 遙控車<span class="badge todo">未開始</span></div>
-            <div class="note">車能動、用鍵盤/手機能開。先搞定輪子、馬達、馬達驅動板。（純硬體，還沒 AI）</div>
+            <div class="title">1. 遙控車<span class="badge done">完成</span></div>
+            <div class="note">2026-06-10 車會走！組裝 + L298N 馬達驅動，前進/後退/轉彎都通。</div>
           </div>
         </div>
-        <div class="step">
-          <div class="light">⬜</div>
+        <div class="step done">
+          <div class="light">✅</div>
           <div class="body">
-            <div class="title">2. 眼睛接上<span class="badge todo">未開始</span></div>
-            <div class="note">鏡頭畫面進電腦，YOLO 能框出「草 / 障礙物」。（單獨玩 YOLO，先不上車）</div>
+            <div class="title">2. 眼睛接上<span class="badge done">完成</span></div>
+            <div class="note">2026-06-11 Pi 4 + webcam 跑 YOLOv8n，框出螢幕/鍵盤（含一個誤判，真實世界的偵測雜訊）。</div>
           </div>
         </div>
-        <div class="step">
-          <div class="light">⬜</div>
+        <div class="step active">
+          <div class="light">🟡</div>
           <div class="body">
-            <div class="title">3. 接大腦<span class="badge todo">未開始</span></div>
-            <div class="note">把模擬器調好的決策演算法，改成吃「YOLO 看到的東西」，自動開車。</div>
+            <div class="title">3. 接大腦<span class="badge active">進行中</span></div>
+            <div class="note">動作鏈已通（Pi 經 USB 序列埠指揮 Uno 開車）✅。剩最後一塊：YOLO 看到什麼 → 規則決定怎麼開。</div>
           </div>
         </div>
         <div class="step">
@@ -179,8 +179,8 @@
       <h2>硬體盤點</h2>
       <div class="inv">
         <div class="item"><div class="ico">🧠</div><div><div class="name">樹莓派 Pi 4</div><div class="st">✅ 已有 · 大腦</div></div></div>
-        <div class="item"><div class="ico">🧠</div><div><div class="name">Arduino</div><div class="st">🟡 同事明天帶 · 小腦</div></div></div>
-        <div class="item"><div class="ico">🦴</div><div><div class="name">自走車套件</div><div class="st">🛒 明天可採購 · 身體</div></div></div>
+        <div class="item"><div class="ico">🧠</div><div><div class="name">Arduino Uno（套件附）</div><div class="st">✅ 上車服役 · 小腦（MEGA 2560 備用）</div></div></div>
+        <div class="item"><div class="ico">🦴</div><div><div class="name">自走車套件</div><div class="st">✅ 組裝完成 · 會跑了</div></div></div>
         <div class="item"><div class="ico">👁</div><div><div class="name">USB webcam</div><div class="st">✅ 已拿到 · 視覺</div></div></div>
         <div class="item"><div class="ico">📡</div><div><div class="name">超音波感測器</div><div class="st">✅ 套件附 · 避障</div></div></div>
       </div>
