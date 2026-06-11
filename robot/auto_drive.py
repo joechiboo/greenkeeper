@@ -29,12 +29,20 @@ SAVE_PATH = Path.home() / "auto_view.jpg"
 
 
 def find_arduino_port():
+    import serial
     import serial.tools.list_ports
     for p in serial.tools.list_ports.comports():
         desc = (p.description or "").lower()
         if "ch340" in desc or "arduino" in desc or "usb serial" in desc or "usb-serial" in desc:
             return p.device
-    return "/dev/ttyUSB0"
+    # 後備：官方 Uno 是 /dev/ttyACM0（CDC ACM），CH340 clone 是 /dev/ttyUSB0
+    for dev in ("/dev/ttyACM0", "/dev/ttyUSB0"):
+        try:
+            serial.Serial(dev, 9600, timeout=0.1).close()
+            return dev
+        except (OSError, serial.SerialException):
+            continue
+    raise SystemExit("找不到 Arduino（試過 ttyACM0/ttyUSB0）。確認 Uno 的 USB 接在 Pi 上。")
 
 
 def grab_fresh(cap):

@@ -7,7 +7,9 @@
 
 ## 內容
 
-- `drive_test.py` — 動作鏈測試：Pi 送 `w/x/a/d/s` 開車。`-i` 進互動模式。
+- `drive_test.py` — 動作鏈測試：Pi 送 `w/x/a/d/s` 開車。`-i` 進互動模式。（階段 1，✅ 已通）
+- `vision_test.py` — 視覺第一眼：抓一張 webcam → YOLOv8n 偵測 → 印出看到什麼、存框圖。（階段 2，✅ 已通）
+- `auto_drive.py` — 自動駕駛 v1：webcam → YOLO → 規則 → 序列指令，視覺/決策/動作首次接合。`--drive` 才真開車，預設乾跑只印判斷。（階段 3，進行中）
 
 ## 快速開始（在 Pi 上）
 
