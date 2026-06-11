@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx --yes serve -l 5173 .)"
+      "Bash(npx --yes serve -l 5173 .)",
+      "Bash(mkdir -p \"/d/Personal/tako-work\")",
+      "Read(//d/Personal/**)",
+      "Read(//d/Gitlab/TakoDoko/backend/src/TacoDoko.Core/DTOs/**)",
+      "Read(//d/Gitlab/TakoDoko/**)",
+      "PowerShell(\"--- COM ports ---\"; [System.IO.Ports.SerialPort]::GetPortNames\\(\\); \"--- Ports/Serial/Arduino/CH340 devices \\(present\\) ---\"; Get-PnpDevice -PresentOnly | Where-Object { $_.Class -eq 'Ports' -or $_.FriendlyName -match 'Arduino|CH340|CH341|USB-SERIAL|Serial|FT232' } | Select-Object Status,Class,FriendlyName,InstanceId | Format-List; \"--- Problem/unknown devices ---\"; Get-PnpDevice -PresentOnly | Where-Object { $_.Status -ne 'OK' } | Select-Object Status,Class,FriendlyName | Format-Table -AutoSize)",
+      "PowerShell(\"--- COM ports ---\"; [System.IO.Ports.SerialPort]::GetPortNames\\(\\); \"--- CH340 / USB-SERIAL 裝置狀態 ---\"; Get-PnpDevice -PresentOnly | Where-Object { $_.InstanceId -match 'VID_1A86' -or $_.FriendlyName -match 'CH340|USB-SERIAL|Serial' } | Select-Object Status,Class,FriendlyName,InstanceId | Format-List)"
     ]
   }
 }
