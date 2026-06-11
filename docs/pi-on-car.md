@@ -30,16 +30,26 @@ scp D:\Personal\Project\greenkeeper\robot\auto_drive.py pi@192.168.169.91:~
 2. **帶臍帶 --drive**（車架空、馬達電池開）：`python3 auto_drive.py --drive` → 輪子跟著判斷動
 3. **截圖看視角**：`python3 vision_test.py` → `scp pi@192.168.169.91:~/detect_result.jpg D:\Personal\`
 
+## 無線遙測 📡（2026-06-11 已建立）
+
+Pi 4 內建 WiFi 已連**內網 UCL WiFi**，與辦公 PC 同網段：
+
+- 無線 SSH：`ssh pi@192.168.169.71`（拔掉網路線照樣通；金鑰免密碼）
+- 有線備援：`ssh pi@192.168.169.91`（插網路線時）
+- 兩個 IP 都是 DHCP，變動時查大章魚「小黑Pi」或 `ssh pi@raspberrypi.local`
+- 排雷：Pi 的 WiFi 第一次要 `raspi-config` 設國碼 TW + `rfkill unblock wifi`；
+  UCL-Guest 是隔離網段（172.30.x），內網 PC 搆不到，**別用 Guest**
+
 ## 剪臍帶 SOP ✂️（每次出車照這個順序）
 
 > 兩個坑：①換電源 = Pi 重開機（不能熱插拔）②SSH 斷線會殺掉前景程式（要 nohup）
 
-1. Pi 接**行動電源**開機（網路線先留著）
-2. `ssh pi@192.168.169.91`
+1. Pi 接**行動電源**開機，等 30~60 秒
+2. 無線連入：`ssh pi@192.168.169.71`
 3. 確認 Uno + webcam 的 USB 都在 Pi 上（`ls /dev/ttyACM0 /dev/video0`）
 4. 啟動（斷線不死）：`nohup python3 auto_drive.py --drive > auto.log 2>&1 &`
-5. 確認在跑：`tail -f auto.log`（Ctrl+C 只是停止觀看）
-6. 拔網路線 → 放地上 → 車自由了
+5. 放地上 → 車自由了；隨時 `ssh` 進去 `tail -f auto.log` 看即時判斷
+6. 停程式：`pkill -f auto_drive`（或馬達電池開關直接斷力）
 
 ## 怎麼讓它停 🛑
 
