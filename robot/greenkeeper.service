@@ -22,7 +22,8 @@ After=multi-user.target
 Type=simple
 User=pi
 WorkingDirectory=/home/pi
-ExecStart=/usr/bin/python3 /home/pi/auto_drive.py --drive
+# -u = unbuffered：沒有終端機時 Python 會緩衝輸出，journal 會看不到判斷行
+ExecStart=/usr/bin/python3 -u /home/pi/auto_drive.py --drive
 # 裝置還沒就緒（Uno/webcam 沒接）或程式掛掉 → 5 秒後重試，直到成功
 Restart=always
 RestartSec=5
