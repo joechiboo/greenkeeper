@@ -1,0 +1,31 @@
+# GreenKeeper 自動駕駛 — systemd 服務（開機自動啟動）
+#
+# 安全設計：程式開機就跑、持續送指令，但馬達沒電池就不會動。
+# 「馬達電池開關」= 武裝開關 + 緊急煞車：撥開才出發，關掉立停。
+#
+# 部署（在 Pi 上）：
+#   sudo cp ~/greenkeeper.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now greenkeeper
+#
+# 常用：
+#   journalctl -u greenkeeper -f      # 看即時 log（取代 tail -f auto.log）
+#   sudo systemctl stop greenkeeper   # 停（手動測試前必停，否則佔住序列埠/相機）
+#   sudo systemctl start greenkeeper  # 啟
+#   sudo systemctl disable greenkeeper  # 取消開機自動啟動
+
+[Unit]
+Description=GreenKeeper auto drive (vision -> rules -> motors)
+After=multi-user.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi
+ExecStart=/usr/bin/python3 /home/pi/auto_drive.py --drive
+# 裝置還沒就緒（Uno/webcam 沒接）或程式掛掉 → 5 秒後重試，直到成功
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
