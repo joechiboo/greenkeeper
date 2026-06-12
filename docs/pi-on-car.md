@@ -40,16 +40,25 @@ Pi 4 內建 WiFi 已連**內網 UCL WiFi**，與辦公 PC 同網段：
 - 排雷：Pi 的 WiFi 第一次要 `raspi-config` 設國碼 TW + `rfkill unblock wifi`；
   UCL-Guest 是隔離網段（172.30.x），內網 PC 搆不到，**別用 Guest**
 
-## 剪臍帶 SOP ✂️（每次出車照這個順序）
+## 開機自動啟動 🤖（2026-06-12 已部署，取代 nohup）
 
-> 兩個坑：①換電源 = Pi 重開機（不能熱插拔）②SSH 斷線會殺掉前景程式（要 nohup）
+`robot/greenkeeper.service` 已裝進 systemd：**Pi 一上電程式就跑**、掛掉 5 秒自動重啟。
 
-1. Pi 接**行動電源**開機，等 30~60 秒
-2. 無線連入：`ssh pi@192.168.169.71`
-3. 確認 Uno + webcam 的 USB 都在 Pi 上（`ls /dev/ttyACM0 /dev/video0`）
-4. 啟動（斷線不死）：`nohup python3 auto_drive.py --drive > auto.log 2>&1 &`
-5. 放地上 → 車自由了；隨時 `ssh` 進去 `tail -f auto.log` 看即時判斷
-6. 停程式：`pkill -f auto_drive`（或馬達電池開關直接斷力）
+- **武裝開關設計**：程式隨時在送指令，但**馬達電池開關沒開就不會動**。
+  開關 = 起跑令 + 緊急煞車。
+- 看即時判斷：`journalctl -u greenkeeper -f`
+- **手動測試前必停**（否則佔住序列埠/相機）：`sudo systemctl stop greenkeeper`
+- 更新程式後：scp 新檔 → `sudo systemctl restart greenkeeper`
+- 服務檔已加 `python3 -u`（unbuffered），journal 才看得到輸出
+
+## 出車 SOP ✂️（systemd 版，超簡單）
+
+1. 車放地上、Pi 接行動電源 → 開機（程式自己起來）
+2. 等 1 分鐘，撥開**馬達電池開關** → 出發 🚗
+3. 想看它在想什麼：`ssh pi@192.168.169.71` → `journalctl -u greenkeeper -f`
+4. 停：關馬達電池開關（立停）；或 `sudo systemctl stop greenkeeper`
+
+> 坑提醒：換電源 = Pi 重開機（不能熱插拔），先接好電再撥馬達開關。
 
 ## 怎麼讓它停 🛑
 
