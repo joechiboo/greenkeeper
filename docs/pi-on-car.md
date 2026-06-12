@@ -54,7 +54,8 @@ Pi 4 內建 WiFi 已連**內網 UCL WiFi**，與辦公 PC 同網段：
 ## 出車 SOP ✂️（systemd 版，超簡單）
 
 1. 車放地上、Pi 接行動電源 → 開機（程式自己起來）
-2. 等 1 分鐘，撥開**馬達電池開關** → 出發 🚗
+2. **等約 2 分鐘**（開機 ~1 分 + Pi 4 載入 PyTorch/YOLO ~1 分；journal 出現
+   「開始巡邏」才算醒），撥開**馬達電池開關** → 出發 🚗
 3. 想看它在想什麼：`ssh pi@192.168.169.71` → `journalctl -u greenkeeper -f`
 4. 停：關馬達電池開關（立停）；或 `sudo systemctl stop greenkeeper`
 
