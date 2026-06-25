@@ -33,9 +33,10 @@ char current = 's';
 void setup() {
   int pins[] = {LEFT1, LEFT2, LEFT_PWM, RIGHT1, RIGHT2, RIGHT_PWM};
   for (int p : pins) pinMode(p, OUTPUT);
+  // 打開序列埠收指令；9600 必須跟 Pi 端 serial.Serial(port, 9600) 一致，否則讀到亂碼
   Serial.begin(9600);
   stopMotor();
-  Serial.println("ready");   // 開機打招呼，Pi 端可確認連線
+  Serial.println("ready");   // 開機打招呼，Pi 端可讀這句確認連線
 }
 
 void forward() {
@@ -64,26 +65,34 @@ void stopMotor() {
   analogWrite(LEFT_PWM, 0); analogWrite(RIGHT_PWM, 0);
 }
 
+// === 收指令的翻譯 + 執行 ===
+// 把 Pi 送來的一個字母，翻成對應的馬達動作。這本 switch 就是「字母→動作」字典。
 void apply(char cmd) {
   switch (cmd) {
-    case 'w': forward();   break;
+    case 'w': forward();   break;   // 收到 'w' → 拉高馬達腳位，輪子正轉
     case 'x': backward();  break;
     case 'a': turnLeft();  break;
     case 'd': turnRight(); break;
     case 's': stopMotor(); break;
-    default:  return;      // 不認得的字元（含換行）直接忽略
+    default:  return;      // 不認得的字元（含換行）直接忽略，不更新計時器
   }
   current = cmd;
-  lastCmdAt = millis();
-  Serial.print("ok ");     // 回覆收到，Pi 端可讀來確認
+  lastCmdAt = millis();    // 記下「剛收到指令的時間」← 下方失聯保險要用
+  Serial.print("ok ");     // 回一聲給 Pi（沿同一條管子流回去），方便除錯/確認
   Serial.println(cmd);
 }
 
+// loop() 是 Arduino 的心跳，每秒自動跑數千次，一直做兩件事：收指令、顧安全。
 void loop() {
+  // === 收指令 ===
+  // Serial.available()：管子裡有 Pi 送來、還沒讀的位元組嗎？
+  // Serial.read()：讀出那一個位元組（例如 'w'），交給 apply 翻成動作。
   if (Serial.available()) {
     apply(Serial.read());
   }
-  // 安全停車：太久沒指令且不是停止狀態 → 停
+  // === 失聯保險（Pi 做不到、只能靠 Arduino 自己）===
+  // Pi 正常時每 0.33 秒餵一個指令。若管子安靜超過 1 秒（Pi 當機/USB 鬆脫/程式崩潰），
+  // 不等任何通知，自己煞車。上次拔網路線車能穩穩停，就是這幾行。
   if (current != 's' && millis() - lastCmdAt > TIMEOUT_MS) {
     stopMotor();
     current = 's';
