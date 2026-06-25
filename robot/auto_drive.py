@@ -60,13 +60,19 @@ def main():
     ap.add_argument("--cam", type=int, default=0, help="webcam 編號（預設 0）")
     args = ap.parse_args()
 
+    # === Pi → Arduino 溝通：開門 ===
+    # 一條 USB 線 = 一條序列埠（傳位元組的雙向管子）。Pi 在這頭下指令，
+    # Arduino 在那頭讀指令催馬達（firmware/serial_control/serial_control.ino）。
     ser = None
     if args.drive:
         import serial
         port = find_arduino_port()
         print(f"連接 Arduino：{port}")
+        # ser = 管子的把手；9600 = baud（每秒位元數），兩邊必須一致才不會讀到亂碼
         ser = serial.Serial(port, 9600, timeout=1)
-        time.sleep(2)  # Uno 開埠會重置，等開機
+        # 坑：打開序列埠的瞬間會讓 Uno 重置（Arduino 硬體設計），
+        # 不等它開完機就送指令會收不到，所以睡 2 秒
+        time.sleep(2)
     else:
         print("乾跑模式（不開車）。確認判斷正常後加 --drive。")
 
@@ -93,15 +99,23 @@ def main():
             r = model(frame, imgsz=320, verbose=False)[0]
             dt = time.time() - t0
 
-            # 規則 v1：有夠可信的 person → 停，否則前進
+            # === Pi → Arduino 溝通：決定要送什麼 ===
+            # 規則 v1：有夠可信的 person → 停，否則前進。
+            # 之後做繞障/走地圖，改的就是這段；最後 cmd 永遠是一個字母。
             people = [b for b in r.boxes
                       if r.names[int(b.cls)] == "person" and float(b.conf) >= CONF_MIN]
-            cmd = "s" if people else "w"
+            cmd = "s" if people else "w"   # 協定：w前進 x後退 a左 d右 s停
 
             seen = ", ".join(f"{r.names[int(b.cls)]} {float(b.conf):.0%}" for b in r.boxes) or "（沒東西）"
             action = {"s": "🛑 停（有人）", "w": "▶️ 前進"}[cmd]
             print(f"[{dt:.2f}s] 看到：{seen} → {action}")
 
+            # === Pi → Arduino 溝通：送出去（整段通訊的心臟就這一行）===
+            # cmd.encode()：把字母轉成位元組，例如 "w" → b'w'（數值 119），
+            #               因為線路只能傳數字；Arduino 端 Serial.read() 讀回同一個 119。
+            # ser.write(...)：把這個位元組推進管子，沿 USB 跑到 Arduino。
+            # 主迴圈約 0.33 秒一圈 → 每秒約送 3 次，細水長流餵指令；
+            # 一旦斷線管子安靜超過 1 秒，Arduino 自己煞車（不靠 Pi）。
             if ser:
                 ser.write(cmd.encode())
             if args.save:
